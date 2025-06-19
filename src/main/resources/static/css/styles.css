@@ -1,0 +1,57 @@
+body {
+  background-color: #f8f9fa; /* light gray background */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1, h5 {
+  color: #343a40; /* dark gray text */
+}
+
+.card {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.container {
+  margin-bottom: 50px;
+}
+
+.btn-primary, .btn-outline-primary {
+  border-radius: 20px;
+}
+
+form input[type="text"],
+form input[type="date"],
+form textarea {
+  border-radius: 6px;
+}
+
+form button {
+  min-width: 120px;
+}
+
+.img-fluid {
+  border-radius: 8px;
+  max-height: 300px;
+  object-fit: cover;
+}
+
+.text-center p {
+  color: #6c757d;
+}
+
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 20px;
+  }
+}

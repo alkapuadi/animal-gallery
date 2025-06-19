@@ -3,59 +3,89 @@ package com.example.dogapi.controller;
 import com.example.dogapi.entity.Dog;
 import com.example.dogapi.service.DogService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 
-@RestController
-@RequestMapping("/api/dogs")
+@Controller
+@RequestMapping("/dogs")
 public class DogController {
 
     @Autowired
     private DogService dogService;
 
-    @GetMapping
-    public List<Dog> getAllDogs() {
-        return dogService.getAllDogs();
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(java.util.Date.class, new CustomDateEditor(dateFormat, true));
+    }
+
+    @GetMapping({"", "/api"})
+    public String listDogs(Model model) {
+        List<Dog> dogs = dogService.getAllDogs();
+        model.addAttribute("animalList", dogs);
+        return "home";
+    }
+
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("animal", new Dog());
+        return "animal-create";
+    }
+
+    @PostMapping("/new")
+    public String createDog(@ModelAttribute Dog dog) {
+        dogService.addDog(dog);
+        return "redirect:/dogs";
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Dog> getDogById(@PathVariable Long id) {
+    public String getDogDetails(@PathVariable Long id, Model model) {
         return dogService.getDogById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(dog -> {
+                    model.addAttribute("animal", dog);
+                    return "animal-details";
+                })
+                .orElse("redirect:/dogs");
     }
 
-    @PostMapping
-    public Dog addDog(@RequestBody Dog dog) {
-        return dogService.addDog(dog);
+    @GetMapping("/update/{id}")
+    public String showUpdateForm(@PathVariable Long id, Model model) {
+        return dogService.getDogById(id)
+                .map(dog -> {
+                    model.addAttribute("animal", dog);
+                    return "animal-update";
+                })
+                .orElse("redirect:/dogs");
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Dog> updateDog(@PathVariable Long id, @RequestBody Dog dog) {
-        Dog updatedDog = dogService.updateDog(id, dog);
-        if (updatedDog != null) {
-            return ResponseEntity.ok(updatedDog);
-        }
-        return ResponseEntity.notFound().build();
+    @PostMapping("/update")
+    public String updateDog(@ModelAttribute Dog dog) {
+        dogService.updateDog(dog.getDogId(), dog);
+        return "redirect:/dogs/" + dog.getDogId();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDog(@PathVariable Long id) {
-        if (dogService.deleteDog(id)) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/breed/{breed}")
-    public List<Dog> getDogsByBreed(@PathVariable String breed) {
-        return dogService.getDogsByBreed(breed);
+    @GetMapping("/delete/{id}")
+    public String deleteDog(@PathVariable Long id) {
+        dogService.deleteDog(id);
+        return "redirect:/dogs";
     }
 
     @GetMapping("/search")
-    public List<Dog> getDogsByNameContains(@RequestParam String name) {
-        return dogService.getDogsByNameContains(name);
+    public String searchDogs(@RequestParam String name, Model model) {
+        List<Dog> dogs = dogService.getDogsByNameContains(name);
+        model.addAttribute("animalList", dogs);
+        return "home";
+    }
+
+    @GetMapping("/about")
+    public String about() {
+        return "about";
     }
 }
